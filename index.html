@@ -398,7 +398,6 @@
     // --- PWA 动态注入黑科技 ---
     (function initPWA() {
       if (!window.matchMedia('(display-mode: standalone)').matches) {
-        // 动态生成 manifest
         const manifest = {
           name: "Lolita Wardrobe", short_name: "Wardrobe", display: "standalone",
           background_color: "#F9F6F0", theme_color: "#D4C4B7",
@@ -416,13 +415,12 @@
       setup() {
         const activeTab = ref('home');
         const wardrobe = ref([]);
-        const wishlist = ref([]); // 种草机数据
+        const wishlist = ref([]); 
         const fileList = ref([]);
         const editingId = ref(null);
         const filterStatus = ref('all');
         const currentTheme = ref('default');
 
-        // --- 种草机相关状态 ---
         const isEditingWish = ref(false);
         const editingWishId = ref(null);
         const wishFileList = ref([]);
@@ -431,7 +429,6 @@
         const showWishStatusPicker = ref(false);
         const wishStatusColumns = [{ text: '未开售', value: 'unreleased' }, { text: '已截团', value: 'closed' }];
 
-        // --- 衣橱 Picker 数据 ---
         const showTypePicker = ref(false);
         const typeColumns = [{ text: 'JSK', value: 'JSK' }, { text: 'OP', value: 'OP' }, { text: 'SK', value: 'SK' }, { text: 'SP', value: 'SP' }, { text: '背带款', value: '背带' }];
         const showAccTypePicker = ref(false);
@@ -462,10 +459,15 @@
               document.documentElement.setAttribute('data-theme', savedTheme);
             }
             
-            // 检查通知权限
             if ("Notification" in window && Notification.permission === "default") {
               setTimeout(() => Notification.requestPermission(), 3000);
             }
+
+            // 监听窗口大小变化，自适应图表
+            window.addEventListener('resize', () => {
+              if (chartInstance) chartInstance.resize();
+            });
+
           } catch (e) { console.error("读取数据失败", e); }
         });
 
@@ -476,7 +478,6 @@
           });
         };
 
-        // --- 提醒逻辑 ---
         const currentMonthPending = computed(() => {
           const now = new Date();
           const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -494,77 +495,41 @@
           return { count, total };
         });
 
-        // --- 种草机逻辑 ---
-        const onWishStatusConfirm = ({ selectedOptions }) => {
-          wishFormData.status = selectedOptions[0].value;
-          showWishStatusPicker.value = false;
-        };
-
-        const resetWishForm = () => {
-          Object.assign(wishFormData, initWishFormData());
-          wishFileList.value = [];
-          editingWishId.value = null;
-        };
-
-        const afterWishRead = async (file) => {
-          file.status = 'uploading'; file.message = '压缩中...';
-          try { wishFormData.image = await compressImage(file.file); file.status = 'done'; } 
-          catch (e) { file.status = 'failed'; }
-        };
-
+        const onWishStatusConfirm = ({ selectedOptions }) => { wishFormData.status = selectedOptions[0].value; showWishStatusPicker.value = false; };
+        const resetWishForm = () => { Object.assign(wishFormData, initWishFormData()); wishFileList.value = []; editingWishId.value = null; };
+        const afterWishRead = async (file) => { file.status = 'uploading'; file.message = '压缩中...'; try { wishFormData.image = await compressImage(file.file); file.status = 'done'; } catch (e) { file.status = 'failed'; } };
         const onWishSubmit = async () => {
           if (editingWishId.value) {
             const index = wishlist.value.findIndex(i => i.id === editingWishId.value);
             if (index > -1) wishlist.value[index] = JSON.parse(JSON.stringify(wishFormData));
-          } else {
-            wishlist.value.unshift(JSON.parse(JSON.stringify(wishFormData)));
-          }
-          await saveData();
-          showToast('种草成功');
-          isEditingWish.value = false;
+          } else { wishlist.value.unshift(JSON.parse(JSON.stringify(wishFormData))); }
+          await saveData(); showToast('种草成功'); isEditingWish.value = false;
         };
-
         const editWishItem = (id) => {
           const item = wishlist.value.find(i => i.id === id);
           Object.assign(wishFormData, JSON.parse(JSON.stringify(item)));
-          editingWishId.value = item.id;
-          wishFileList.value = item.image ? [{ url: item.image }] : [];
-          isEditingWish.value = true;
+          editingWishId.value = item.id; wishFileList.value = item.image ? [{ url: item.image }] : []; isEditingWish.value = true;
         };
-
         const deleteWishItem = () => {
           showConfirmDialog({ title: '确认删除', message: '确定要删除这条种草记录吗？' }).then(async () => {
-            wishlist.value = wishlist.value.filter(i => i.id !== editingWishId.value);
-            await saveData();
-            showToast('已删除');
-            isEditingWish.value = false;
+            wishlist.value = wishlist.value.filter(i => i.id !== editingWishId.value); await saveData(); showToast('已删除'); isEditingWish.value = false;
           }).catch(() => {});
         };
-
         const transferToWardrobe = (wishItem) => {
           showConfirmDialog({ title: '拔草入柜', message: '将此裙子转移到衣橱并填写定金？' }).then(async () => {
-            // 从种草机删除
             wishlist.value = wishlist.value.filter(i => i.id !== wishItem.id);
-            // 填充到衣橱表单
             Object.assign(formData, initFormData());
-            formData.name = wishItem.name;
-            formData.image = wishItem.image;
-            formData.note = wishItem.note;
+            formData.name = wishItem.name; formData.image = wishItem.image; formData.note = wishItem.note;
             fileList.value = wishItem.image ? [{ url: wishItem.image }] : [];
-            
-            await saveData();
-            activeTab.value = 'add';
-            showToast('请补充定金和尾款信息');
+            await saveData(); activeTab.value = 'add'; showToast('请补充定金和尾款信息');
           }).catch(() => {});
         };
 
-        // --- 衣橱 Picker 确认事件 ---
         const onTypeConfirm = ({ selectedOptions }) => { formData.type = selectedOptions[0].value; showTypePicker.value = false; };
         const onAccTypeConfirm = ({ selectedOptions }) => { if (currentAccIndex.value !== -1) formData.accessories[currentAccIndex.value].type = selectedOptions[0].value; showAccTypePicker.value = false; };
         const openAccTypePicker = (index) => { currentAccIndex.value = index; showAccTypePicker.value = true; };
         const onFormStatusConfirm = ({ selectedOptions }) => { formData.status = selectedOptions[0].value; showFormStatusPicker.value = false; };
 
-        // --- 设置与备份 ---
         const changeTheme = (val) => { document.documentElement.setAttribute('data-theme', val); localStorage.setItem('wardrobe_theme', val); };
         const exportData = () => {
           const dataStr = JSON.stringify({ wardrobe: wardrobe.value, wishlist: wishlist.value });
@@ -581,7 +546,7 @@
             try {
               const importedData = JSON.parse(e.target.result);
               showConfirmDialog({ title: '确认导入', message: '导入将覆盖当前所有数据，是否继续？' }).then(async () => {
-                if(Array.isArray(importedData)) { wardrobe.value = importedData; wishlist.value = []; } // 兼容老版本备份
+                if(Array.isArray(importedData)) { wardrobe.value = importedData; wishlist.value = []; } 
                 else { wardrobe.value = importedData.wardrobe || []; wishlist.value = importedData.wishlist || []; }
                 await saveData(); showToast('导入成功'); event.target.value = '';
               }).catch(() => { event.target.value = ''; });
@@ -595,7 +560,6 @@
           }).catch(() => {});
         };
 
-        // --- 统计与图表 ---
         const filteredWardrobe = computed(() => {
           if (filterStatus.value === 'all') return wardrobe.value;
           return wardrobe.value.filter(item => item.status === filterStatus.value);
@@ -636,48 +600,108 @@
           return Object.values(map).sort((a, b) => a.month === 'unknown' ? 1 : a.month.localeCompare(b.month));
         });
 
+        // 修复后的图表渲染逻辑（折线图）
         const renderChart = () => {
           if (typeof echarts === 'undefined') return;
           const chartDom = document.getElementById('trendChart');
           if (!chartDom) return;
-          if (!chartInstance) chartInstance = echarts.init(chartDom);
+          
+          if (chartInstance) {
+            chartInstance.dispose();
+          }
+          chartInstance = echarts.init(chartDom);
           
           const monthData = {};
+          
           wardrobe.value.forEach(item => {
-            const m = item.date; if (!m) return;
+            let m = item.date;
+            if (!m) {
+              const d = new Date(parseInt(item.id));
+              if (!isNaN(d.getTime())) {
+                m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+              } else {
+                m = '未知';
+              }
+            }
+
             if (!monthData[m]) monthData[m] = { expense: 0, pending: 0 };
+            
             monthData[m].expense += Number(item.deposit || 0);
-            if (item.status !== 'pending') monthData[m].expense += Number(item.balance || 0);
-            if (item.status === 'pending') monthData[m].pending += Number(item.balance || 0);
+            if (item.status !== 'pending') {
+              monthData[m].expense += Number(item.balance || 0);
+            } else {
+              monthData[m].pending += Number(item.balance || 0);
+            }
+
             (item.accessories || []).forEach(acc => {
               monthData[m].expense += Number(acc.deposit || 0);
-              if (item.status !== 'pending') monthData[m].expense += Number(acc.balance || 0);
-              if (item.status === 'pending') monthData[m].pending += Number(acc.balance || 0);
+              if (item.status !== 'pending') {
+                monthData[m].expense += Number(acc.balance || 0);
+              } else {
+                monthData[m].pending += Number(acc.balance || 0);
+              }
             });
           });
 
-          const sortedMonths = Object.keys(monthData).sort();
+          const sortedMonths = Object.keys(monthData)
+            .filter(m => m !== '未知')
+            .sort();
+            
           const expenseArr = sortedMonths.map(m => monthData[m].expense);
           const pendingArr = sortedMonths.map(m => monthData[m].pending);
 
+          if (sortedMonths.length === 0) {
+            chartInstance.setOption({
+              title: { text: '暂无消费数据', left: 'center', top: 'center', textStyle: { color: '#9E958D', fontSize: 14, fontWeight: 'normal' } }
+            });
+            return;
+          }
+
+          // 折线图配置
           chartInstance.setOption({
-            tooltip: { trigger: 'axis' }, legend: { data: ['已支出', '待补款'], bottom: 0 },
+            tooltip: { trigger: 'axis' }, 
+            legend: { data: ['已支出', '待补款'], bottom: 0 },
             grid: { left: '3%', right: '4%', bottom: '15%', top: '10%', containLabel: true },
-            xAxis: { type: 'category', data: sortedMonths, axisLine: { lineStyle: { color: '#9E958D' } } },
+            xAxis: { 
+              type: 'category', 
+              boundaryGap: false, // 让折线从边缘开始
+              data: sortedMonths, 
+              axisLine: { lineStyle: { color: '#9E958D' } } 
+            },
             yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#EAEAEA' } } },
             series: [
-              { name: '已支出', type: 'bar', stack: 'total', data: expenseArr, itemStyle: { color: '#D4C4B7', borderRadius: [0,0,0,0] } },
-              { name: '待补款', type: 'bar', stack: 'total', data: pendingArr, itemStyle: { color: '#E2C2C6', borderRadius: [4,4,0,0] } }
+              { 
+                name: '已支出', 
+                type: 'line', 
+                smooth: true, // 平滑曲线
+                data: expenseArr, 
+                itemStyle: { color: '#D4C4B7' },
+                areaStyle: { color: 'rgba(212, 196, 183, 0.3)' } // 面积填充
+              },
+              { 
+                name: '待补款', 
+                type: 'line', 
+                smooth: true, 
+                data: pendingArr, 
+                itemStyle: { color: '#E2C2C6' },
+                areaStyle: { color: 'rgba(226, 194, 198, 0.3)' } 
+              }
             ]
           });
+          
           chartInstance.resize();
         };
 
         const onTabChange = (name) => {
-          if (name === 'calendar') nextTick(() => { setTimeout(() => renderChart(), 100); });
+          if (name === 'calendar') {
+            nextTick(() => { 
+              setTimeout(() => {
+                renderChart(); 
+              }, 300); 
+            });
+          }
         };
 
-        // --- 辅助与交互 ---
         const getStatusText = (status) => ({ pending: '待补款', paid: '已补款', arrived: '已到货', sold: '已出物' }[status] || '未知');
         const getTapeColor = (id) => ['tape-pink', 'tape-green', 'tape-brown'][(String(id||'').charCodeAt(String(id||'').length - 1) || 0) % 3];
 
