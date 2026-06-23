@@ -1,10 +1,10 @@
-const CACHE_NAME = 'lolita-wardrobe-cache-v1';
+const CACHE_NAME = 'lolita-wardrobe-cache-v5';
 
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
-  './icon.PNG',
+  './icon.png',
 
   'https://fastly.jsdelivr.net/npm/vant@4/lib/index.css',
   'https://fastly.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js',
@@ -106,7 +106,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           if (request.destination === 'image') {
-            return caches.match('./icon.PNG');
+            return caches.match('./icon.png');
           }
         });
     })
