@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- PWA 核心 meta 标签 -->
-  <meta name="theme-color" content="#D4C4B7">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#D4C4B7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Lolita Wardrobe</title>
-  
+
   <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/vant@4/lib/index.css" />
   <script src="https://fastly.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  
+
   <style>
     [v-cloak] { display: none !important; }
 
@@ -40,14 +39,21 @@
     }
 
     body {
+      margin: 0;
+      padding-bottom: 60px;
+      color: var(--theme-text-main);
       background-color: var(--theme-bg);
       background-image: radial-gradient(var(--theme-primary) 1px, transparent 1px);
       background-size: 20px 20px;
-      color: var(--theme-text-main);
       font-family: 'PingFang SC', 'Comic Sans MS', cursive, sans-serif;
-      margin: 0;
-      padding-bottom: 60px;
       transition: background-color 0.3s ease;
+    }
+
+    .van-nav-bar { background-color: transparent; }
+    .van-tabs__nav { background-color: transparent; }
+    .van-cell-group--inset {
+      background-color: rgba(255,255,255,0.86);
+      backdrop-filter: blur(4px);
     }
 
     .journal-card {
@@ -73,6 +79,7 @@
       mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
       -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
     }
+
     .tape-pink { background-color: var(--theme-tape-1); transform: translateX(-50%) rotate(-3deg); }
     .tape-green { background-color: var(--theme-tape-2); transform: translateX(-50%) rotate(2deg); width: 70px; left: 20%; }
     .tape-brown { background-color: var(--theme-tape-3); transform: translateX(-50%) rotate(-1deg); width: 110px; }
@@ -92,17 +99,46 @@
       z-index: 5;
       letter-spacing: 2px;
     }
+
     .stamp.paid { color: #8BA09E; border-color: #8BA09E; }
     .stamp.arrived { color: #D98C94; border-color: #D98C94; }
     .stamp.sold { color: #A9A9A9; border-color: #A9A9A9; }
 
-    .card-title { font-size: 20px; font-weight: bold; margin-bottom: 8px; }
-    .card-type { font-size: 12px; background: var(--theme-primary); color: #fff; padding: 2px 8px; border-radius: 10px; vertical-align: middle; }
-    .money-text { color: #D98C94; font-weight: bold; font-family: Arial, sans-serif; }
-    .aux-text { font-size: 12px; color: var(--theme-text-aux); }
+    .card-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+
+    .card-type {
+      font-size: 12px;
+      background: var(--theme-primary);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 10px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .money-text {
+      color: #D98C94;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+    }
+
+    .aux-text {
+      font-size: 12px;
+      color: var(--theme-text-aux);
+    }
 
     .accessory-item {
-      background: repeating-linear-gradient(transparent, transparent 28px, rgba(212, 196, 183, 0.2) 28px, rgba(212, 196, 183, 0.2) 29px);
+      background: repeating-linear-gradient(
+        transparent,
+        transparent 28px,
+        rgba(212, 196, 183, 0.2) 28px,
+        rgba(212, 196, 183, 0.2) 29px
+      );
       padding: 8px 0;
       margin-top: 8px;
       font-size: 14px;
@@ -119,10 +155,15 @@
       margin: 16px;
       box-shadow: 0 4px 10px rgba(212, 196, 183, 0.5);
     }
-    .stat-item { text-align: center; }
-    .stat-num { font-size: 24px; font-weight: bold; margin-top: 8px; font-family: Arial; }
 
-    /* 提醒横幅样式 */
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 8px;
+      font-family: Arial;
+    }
+
     .reminder-banner {
       background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
       color: #fff;
@@ -135,645 +176,1583 @@
       justify-content: space-between;
     }
 
-    .van-nav-bar { background-color: transparent; }
-    .van-tabs__nav { background-color: transparent; }
-    .van-cell-group--inset { background-color: rgba(255,255,255,0.8); backdrop-filter: blur(4px); }
+    /* 衣橱展示模式工具条 */
+    .wardrobe-toolbar {
+      margin: 10px 16px 4px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 1px 3px 10px rgba(0,0,0,0.04);
+    }
+
+    .wardrobe-toolbar-title {
+      font-size: 13px;
+      color: var(--theme-text-aux);
+    }
+
+    .display-mode-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .display-mode-btn {
+      border: 1px solid var(--theme-primary);
+      background: #fff;
+      color: var(--theme-text-main);
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .display-mode-btn.active {
+      background: var(--theme-primary);
+      color: #fff;
+    }
+
+    /* 大缩略图 */
+    .thumb-grid-large {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding: 12px 14px 20px;
+    }
+
+    .thumb-card-large {
+      background: var(--theme-card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 2px 4px 12px rgba(0,0,0,0.07);
+      position: relative;
+    }
+
+    .thumb-image-large {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, rgba(212,196,183,0.35), rgba(226,194,198,0.28));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--theme-text-aux);
+      font-size: 34px;
+      overflow: hidden;
+    }
+
+    .thumb-image-large img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb-info-large {
+      padding: 10px 10px 12px;
+    }
+
+    .thumb-name-large {
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1.35;
+      min-height: 38px;
+      word-break: break-word;
+    }
+
+    .thumb-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--theme-text-aux);
+    }
+
+    .thumb-status {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      color: #fff;
+      background: var(--theme-primary);
+      white-space: nowrap;
+    }
+
+    .thumb-status.pending { background: #E2C2C6; }
+    .thumb-status.paid { background: #8BA09E; }
+    .thumb-status.arrived { background: #D98C94; }
+    .thumb-status.sold { background: #A9A9A9; }
+
+    .thumb-action-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    /* 小缩略图 */
+    .thumb-grid-small {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      padding: 12px 12px 20px;
+    }
+
+    .thumb-card-small {
+      background: var(--theme-card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 1px 3px 9px rgba(0,0,0,0.06);
+      position: relative;
+    }
+
+    .thumb-image-small {
+      width: 100%;
+      aspect-ratio: 1 / 1.1;
+      background: linear-gradient(135deg, rgba(212,196,183,0.35), rgba(226,194,198,0.28));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--theme-text-aux);
+      font-size: 26px;
+      overflow: hidden;
+    }
+
+    .thumb-image-small img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb-info-small {
+      padding: 7px 7px 8px;
+    }
+
+    .thumb-name-small {
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1.25;
+      height: 30px;
+      overflow: hidden;
+      word-break: break-word;
+    }
+
+    .thumb-money-small {
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .thumb-small-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 5px;
+      gap: 4px;
+    }
+
+    .mini-status {
+      border-radius: 999px;
+      padding: 1px 5px;
+      font-size: 10px;
+      color: #fff;
+      background: var(--theme-primary);
+      white-space: nowrap;
+      max-width: 56px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mini-status.pending { background: #E2C2C6; }
+    .mini-status.paid { background: #8BA09E; }
+    .mini-status.arrived { background: #D98C94; }
+    .mini-status.sold { background: #A9A9A9; }
+
+    .small-edit-link {
+      font-size: 10px;
+      color: var(--theme-text-aux);
+      white-space: nowrap;
+    }
+
+    .empty-box {
+      text-align: center;
+      margin-top: 50px;
+      color: var(--theme-text-aux);
+    }
+
+    @media (max-width: 360px) {
+      .thumb-grid-large {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .thumb-image-large {
+        height: 155px;
+      }
+
+      .thumb-grid-small {
+        gap: 8px;
+        padding: 10px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div id="app" v-cloak>
-    <van-nav-bar title="Lolita Wardrobe" :border="false"></van-nav-bar>
+<div id="app" v-cloak>
+  <van-nav-bar title="Lolita Wardrobe" :border="false"></van-nav-bar>
 
-    <!-- ================= 视图 1：衣橱列表 ================= -->
-    <div v-if="activeTab === 'home'">
-      <van-tabs v-model:active="filterStatus" background="transparent" color="var(--theme-primary)" title-active-color="var(--theme-text-main)">
-        <van-tab title="全部" name="all"></van-tab>
-        <van-tab title="待补款" name="pending"></van-tab>
-        <van-tab title="已补款" name="paid"></van-tab>
-        <van-tab title="已到货" name="arrived"></van-tab>
-        <van-tab title="已出物" name="sold"></van-tab>
-      </van-tabs>
+  <!-- ================= 衣橱 ================= -->
+  <div v-if="activeTab === 'home'">
+    <van-tabs
+      v-model:active="filterStatus"
+      background="transparent"
+      color="var(--theme-primary)"
+      title-active-color="var(--theme-text-main)"
+    >
+      <van-tab title="全部" name="all"></van-tab>
+      <van-tab title="待补款" name="pending"></van-tab>
+      <van-tab title="已补款" name="paid"></van-tab>
+      <van-tab title="已到货" name="arrived"></van-tab>
+      <van-tab title="已出物" name="sold"></van-tab>
+    </van-tabs>
 
-      <div v-if="filteredWardrobe.length === 0" style="text-align: center; margin-top: 50px; color: var(--theme-text-aux);">
-        <div style="font-size: 40px; margin-bottom: 10px;">🧸</div>
-        <p>这里空空如也~</p>
+    <div class="wardrobe-toolbar">
+      <div class="wardrobe-toolbar-title">
+        展示方式
       </div>
+      <div class="display-mode-group">
+        <button
+          class="display-mode-btn"
+          :class="{ active: wardrobeViewMode === 'list' }"
+          @click="setWardrobeViewMode('list')"
+        >手账</button>
+        <button
+          class="display-mode-btn"
+          :class="{ active: wardrobeViewMode === 'large' }"
+          @click="setWardrobeViewMode('large')"
+        >大图</button>
+        <button
+          class="display-mode-btn"
+          :class="{ active: wardrobeViewMode === 'small' }"
+          @click="setWardrobeViewMode('small')"
+        >小图</button>
+      </div>
+    </div>
 
-      <div class="journal-card" v-for="(item, index) in filteredWardrobe" :key="item.id">
+    <div v-if="filteredWardrobe.length === 0" class="empty-box">
+      <div style="font-size: 40px; margin-bottom: 10px;">🧸</div>
+      <p>这里空空如也~</p>
+    </div>
+
+    <!-- 手账列表展示 -->
+    <template v-if="wardrobeViewMode === 'list'">
+      <div class="journal-card" v-for="item in filteredWardrobe" :key="item.id">
         <div :class="['washi-tape', getTapeColor(item.id)]"></div>
-        
+
         <div v-if="item.status !== 'pending'" :class="['stamp', item.status]">
           {{ getStatusText(item.status) }}
         </div>
 
         <div class="card-title">
-          {{ item.name }} <span class="card-type">{{ (item.type || 'JSK').toUpperCase() }}</span>
+          {{ item.name }}
+          <span class="card-type">{{ (item.type || 'JSK').toUpperCase() }}</span>
         </div>
-        
-        <van-image v-if="item.image" width="100%" height="200" fit="cover" :src="item.image" radius="8" style="border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"></van-image>
+
+        <van-image
+          v-if="item.image"
+          width="100%"
+          height="200"
+          fit="cover"
+          :src="item.image"
+          radius="8"
+          style="border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"
+        ></van-image>
 
         <div style="margin-top: 12px; font-size: 14px; line-height: 1.8;">
-          <div>定金：<span class="money-text">¥{{ item.deposit || 0 }}</span> &nbsp;&nbsp; 尾款：<span class="money-text">¥{{ item.balance || 0 }}</span></div>
-          <div class="aux-text" v-if="item.status === 'pending'">补款日期：{{ item.date || '未知' }}</div>
+          <div>
+            定金：<span class="money-text">¥{{ item.deposit || 0 }}</span>
+            &nbsp;&nbsp;
+            尾款：<span class="money-text">¥{{ item.balance || 0 }}</span>
+          </div>
+          <div class="aux-text">状态：{{ getStatusText(item.status) }}</div>
+          <div class="aux-text" v-if="item.status === 'pending'">
+            补款日期：{{ item.date || '未知' }}
+          </div>
           <div class="aux-text" v-if="item.note">备注：{{ item.note }}</div>
-          
+
           <div v-if="item.accessories && item.accessories.length > 0" class="accessory-item">
-            <div v-for="acc in item.accessories" :key="acc.id" style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--theme-accent);">
+            <div
+              v-for="acc in item.accessories"
+              :key="acc.id"
+              style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--theme-accent);"
+            >
               <span>{{ acc.type || '小物' }}</span>
-              <span>定:¥{{ acc.deposit||0 }} | 尾:<span class="money-text">¥{{ acc.balance||0 }}</span></span>
+              <span>
+                定:¥{{ acc.deposit || 0 }}
+                |
+                尾:<span class="money-text">¥{{ acc.balance || 0 }}</span>
+              </span>
             </div>
           </div>
         </div>
-        
+
         <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
           <van-button size="small" round plain color="var(--theme-text-aux)" @click="editItem(item.id)">编辑</van-button>
           <van-button size="small" round color="var(--theme-primary)" @click="openStatusSheet(item)">状态</van-button>
         </div>
       </div>
+    </template>
+
+    <!-- 大缩略图展示 -->
+    <div v-if="wardrobeViewMode === 'large'" class="thumb-grid-large">
+      <div class="thumb-card-large" v-for="item in filteredWardrobe" :key="item.id">
+        <div class="thumb-image-large" @click="editItem(item.id)">
+          <img v-if="item.image" :src="item.image" alt="" />
+          <span v-else>👗</span>
+        </div>
+
+        <div class="thumb-info-large">
+          <div class="thumb-name-large">
+            {{ item.name }}
+          </div>
+
+          <div class="thumb-meta-row">
+            <span class="card-type">{{ (item.type || 'JSK').toUpperCase() }}</span>
+            <span :class="['thumb-status', item.status]">{{ getStatusText(item.status) }}</span>
+          </div>
+
+          <div class="thumb-meta-row">
+            <span>定金</span>
+            <span class="money-text">¥{{ item.deposit || 0 }}</span>
+          </div>
+
+          <div class="thumb-meta-row">
+            <span>尾款</span>
+            <span class="money-text">¥{{ item.balance || 0 }}</span>
+          </div>
+
+          <div class="thumb-meta-row" v-if="item.status === 'pending'">
+            <span>补款</span>
+            <span>{{ item.date || '未知' }}</span>
+          </div>
+
+          <div class="thumb-meta-row" v-if="item.accessories && item.accessories.length">
+            <span>小物</span>
+            <span>{{ item.accessories.length }} 件</span>
+          </div>
+
+          <div class="aux-text" v-if="item.note" style="margin-top: 6px; line-height: 1.35;">
+            {{ item.note }}
+          </div>
+
+          <div class="thumb-action-row">
+            <van-button size="mini" round plain color="var(--theme-text-aux)" @click="editItem(item.id)">编辑</van-button>
+            <van-button size="mini" round color="var(--theme-primary)" @click="openStatusSheet(item)">状态</van-button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- ================= 视图 2：记一笔 (衣橱) ================= -->
-    <div v-if="activeTab === 'add'" style="padding: 16px;">
-      <van-form @submit="onSubmit">
-        <van-cell-group inset>
-          <div style="padding: 10px 16px; font-weight: bold; color: var(--theme-primary);">主裙信息</div>
-          <van-field name="uploader" label="裙子图片">
-            <template #input>
-              <van-uploader v-model="fileList" :max-count="1" :after-read="afterRead"></van-uploader>
-            </template>
-          </van-field>
-          <van-field v-model="formData.name" label="裙子名称" placeholder="请输入名称" :rules="[{ required: true }]"></van-field>
-          <van-field v-model="formData.type" is-link readonly label="裙子类型" placeholder="请选择裙子类型" @click="showTypePicker = true"></van-field>
-          <van-field v-model="formData.deposit" type="number" label="定金 (¥)" placeholder="已付定金"></van-field>
-          <van-field v-model="formData.balance" type="number" label="尾款 (¥)" placeholder="待补尾款"></van-field>
-          
-          <van-field :model-value="getStatusText(formData.status)" is-link readonly label="当前状态" placeholder="请选择状态" @click="showFormStatusPicker = true"></van-field>
-          <van-field v-if="formData.status === 'pending'" v-model="formData.date" type="month" label="补款日期" placeholder="预计补款年月"></van-field>
-          <van-field v-model="formData.note" label="备注" placeholder="尺码/颜色/代购信息等"></van-field>
-        </van-cell-group>
+    <!-- 小缩略图展示 -->
+    <div v-if="wardrobeViewMode === 'small'" class="thumb-grid-small">
+      <div class="thumb-card-small" v-for="item in filteredWardrobe" :key="item.id">
+        <div class="thumb-image-small" @click="editItem(item.id)">
+          <img v-if="item.image" :src="item.image" alt="" />
+          <span v-else>👗</span>
+        </div>
 
-        <div style="margin: 16px 0;">
-          <div style="padding: 0 16px; font-weight: bold; color: var(--theme-primary); margin-bottom: 8px;">相关小物</div>
-          <div v-for="(acc, index) in formData.accessories" :key="index" class="journal-card" style="margin: 0 16px 10px; padding: 12px;">
-            <van-field v-model="acc.type" is-link readonly label="小物类型" placeholder="请选择类型" size="small" @click="openAccTypePicker(index)"></van-field>
-            <van-field v-model="acc.deposit" type="number" placeholder="定金金额" size="small" label="定金"></van-field>
-            <van-field v-model="acc.balance" type="number" placeholder="尾款金额" size="small" label="尾款"></van-field>
-            <div style="text-align: right; margin-top: 8px;">
-              <van-button type="danger" size="mini" plain @click="removeAccessory(index)">删除小物</van-button>
-            </div>
+        <div class="thumb-info-small">
+          <div class="thumb-name-small">
+            {{ item.name }}
           </div>
-          <div style="padding: 0 16px;">
-            <van-button plain size="small" block @click="addAccessory" style="border-style: dashed; color: var(--theme-primary);">+ 添加小物</van-button>
+
+          <div class="thumb-money-small">
+            <div>定 <span class="money-text">¥{{ item.deposit || 0 }}</span></div>
+            <div>尾 <span class="money-text">¥{{ item.balance || 0 }}</span></div>
+          </div>
+
+          <div class="aux-text" v-if="item.status === 'pending'" style="font-size: 10px; margin-top: 3px;">
+            {{ item.date || '工期未知' }}
+          </div>
+
+          <div class="thumb-small-footer">
+            <span :class="['mini-status', item.status]">{{ getStatusText(item.status) }}</span>
+            <span class="small-edit-link" @click="editItem(item.id)">编辑</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 记一笔 ================= -->
+  <div v-if="activeTab === 'add'" style="padding: 16px;">
+    <van-form @submit="onSubmit">
+      <van-cell-group inset>
+        <div style="padding: 10px 16px; font-weight: bold; color: var(--theme-primary);">主裙信息</div>
+
+        <van-field name="uploader" label="裙子图片">
+          <template #input>
+            <van-uploader v-model="fileList" :max-count="1" :after-read="afterRead"></van-uploader>
+          </template>
+        </van-field>
+
+        <van-field
+          v-model="formData.name"
+          label="裙子名称"
+          placeholder="请输入名称"
+          :rules="[{ required: true, message: '请填写裙子名称' }]"
+        ></van-field>
+
+        <van-field
+          v-model="formData.type"
+          is-link
+          readonly
+          label="裙子类型"
+          placeholder="请选择裙子类型"
+          @click="showTypePicker = true"
+        ></van-field>
+
+        <van-field v-model="formData.deposit" type="number" label="定金 (¥)" placeholder="已付定金"></van-field>
+        <van-field v-model="formData.balance" type="number" label="尾款 (¥)" placeholder="待补尾款"></van-field>
+
+        <van-field
+          :model-value="getStatusText(formData.status)"
+          is-link
+          readonly
+          label="当前状态"
+          placeholder="请选择状态"
+          @click="showFormStatusPicker = true"
+        ></van-field>
+
+        <van-field
+          v-if="formData.status === 'pending'"
+          v-model="formData.date"
+          type="month"
+          label="补款日期"
+          placeholder="预计补款年月"
+        ></van-field>
+
+        <van-field v-model="formData.note" label="备注" placeholder="尺码/颜色/代购信息等"></van-field>
+      </van-cell-group>
+
+      <div style="margin: 16px 0;">
+        <div style="padding: 0 16px; font-weight: bold; color: var(--theme-primary); margin-bottom: 8px;">
+          相关小物
+        </div>
+
+        <div
+          v-for="(acc, index) in formData.accessories"
+          :key="acc.id || index"
+          class="journal-card"
+          style="margin: 0 16px 10px; padding: 12px;"
+        >
+          <van-field
+            v-model="acc.type"
+            is-link
+            readonly
+            label="小物类型"
+            placeholder="请选择类型"
+            size="small"
+            @click="openAccTypePicker(index)"
+          ></van-field>
+
+          <van-field v-model="acc.deposit" type="number" placeholder="定金金额" size="small" label="定金"></van-field>
+          <van-field v-model="acc.balance" type="number" placeholder="尾款金额" size="small" label="尾款"></van-field>
+
+          <div style="text-align: right; margin-top: 8px;">
+            <van-button type="danger" size="mini" plain @click="removeAccessory(index)">删除小物</van-button>
           </div>
         </div>
 
+        <div style="padding: 0 16px;">
+          <van-button
+            plain
+            size="small"
+            block
+            @click="addAccessory"
+            style="border-style: dashed; color: var(--theme-primary);"
+          >
+            + 添加小物
+          </van-button>
+        </div>
+      </div>
+
+      <div style="margin: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <van-button round block type="primary" native-type="submit" color="var(--theme-primary)">
+          保存记录
+        </van-button>
+        <van-button v-if="editingId" round block plain type="danger" @click="deleteItem">
+          删除此记录
+        </van-button>
+        <van-button v-if="editingId" round block plain @click="cancelEdit">
+          取消编辑
+        </van-button>
+      </div>
+    </van-form>
+  </div>
+
+  <!-- ================= 种草机 ================= -->
+  <div v-if="activeTab === 'wishlist'">
+    <div v-if="!isEditingWish">
+      <div style="padding: 16px; text-align: right;">
+        <van-button
+          round
+          type="primary"
+          size="small"
+          color="var(--theme-accent)"
+          @click="isEditingWish = true; resetWishForm()"
+        >
+          + 种草新裙子
+        </van-button>
+      </div>
+
+      <div v-if="wishlist.length === 0" class="empty-box">
+        <div style="font-size: 40px; margin-bottom: 10px;">🌱</div>
+        <p>种草机空空如也~</p>
+      </div>
+
+      <div class="journal-card" v-for="item in wishlist" :key="item.id">
+        <div :class="['washi-tape', getTapeColor(item.id)]"></div>
+
+        <div class="card-title">{{ item.name }}</div>
+
+        <van-image
+          v-if="item.image"
+          width="100%"
+          height="200"
+          fit="cover"
+          :src="item.image"
+          radius="8"
+          style="border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"
+        ></van-image>
+
+        <div style="margin-top: 12px; font-size: 14px; line-height: 1.8;">
+          <div>
+            状态：
+            <span style="color: var(--theme-accent); font-weight: bold;">
+              {{ item.status === 'unreleased' ? '未开售' : '已截团' }}
+            </span>
+          </div>
+
+          <div v-if="item.status === 'unreleased'">预计开售：{{ item.openDate || '未知' }}</div>
+          <div v-if="item.status === 'closed'">
+            市场价：<span class="money-text">¥{{ item.marketPrice || '未知' }}</span>
+          </div>
+          <div class="aux-text" v-if="item.note">备注：{{ item.note }}</div>
+        </div>
+
+        <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
+          <van-button size="small" round plain color="var(--theme-text-aux)" @click="editWishItem(item.id)">编辑</van-button>
+          <van-button size="small" round color="var(--theme-primary)" @click="transferToWardrobe(item)">拔草入柜</van-button>
+        </div>
+      </div>
+    </div>
+
+    <div v-else style="padding: 16px;">
+      <van-form @submit="onWishSubmit">
+        <van-cell-group inset>
+          <div style="padding: 10px 16px; font-weight: bold; color: var(--theme-accent);">🌱 种草记录</div>
+
+          <van-field name="uploader" label="裙子图片">
+            <template #input>
+              <van-uploader v-model="wishFileList" :max-count="1" :after-read="afterWishRead"></van-uploader>
+            </template>
+          </van-field>
+
+          <van-field
+            v-model="wishFormData.name"
+            label="裙子名称"
+            placeholder="请输入名称"
+            :rules="[{ required: true, message: '请填写裙子名称' }]"
+          ></van-field>
+
+          <van-field
+            :model-value="wishFormData.status === 'unreleased' ? '未开售' : '已截团'"
+            is-link
+            readonly
+            label="售卖状态"
+            placeholder="请选择状态"
+            @click="showWishStatusPicker = true"
+          ></van-field>
+
+          <van-field
+            v-if="wishFormData.status === 'unreleased'"
+            v-model="wishFormData.openDate"
+            type="month"
+            label="预计开售"
+            placeholder="选择年月"
+          ></van-field>
+
+          <van-field
+            v-if="wishFormData.status === 'closed'"
+            v-model="wishFormData.marketPrice"
+            type="number"
+            label="市场价(¥)"
+            placeholder="当前市场价"
+          ></van-field>
+
+          <van-field v-model="wishFormData.note" label="备注" placeholder="蹲点信息/代购等"></van-field>
+        </van-cell-group>
+
         <div style="margin: 16px; display: flex; flex-direction: column; gap: 12px;">
-          <van-button round block type="primary" native-type="submit" color="var(--theme-primary)">保存记录</van-button>
-          <van-button v-if="editingId" round block plain type="danger" @click="deleteItem">删除此记录</van-button>
-          <van-button v-if="editingId" round block plain @click="cancelEdit">取消编辑</van-button>
+          <van-button round block type="primary" native-type="submit" color="var(--theme-accent)">
+            保存种草
+          </van-button>
+          <van-button v-if="editingWishId" round block plain type="danger" @click="deleteWishItem">
+            删除记录
+          </van-button>
+          <van-button round block plain @click="isEditingWish = false">
+            返回列表
+          </van-button>
         </div>
       </van-form>
     </div>
-
-    <!-- ================= 视图 3：种草机 (心愿单) ================= -->
-    <div v-if="activeTab === 'wishlist'">
-      <!-- 种草机列表 -->
-      <div v-if="!isEditingWish">
-        <div style="padding: 16px; text-align: right;">
-          <van-button round type="primary" size="small" color="var(--theme-accent)" @click="isEditingWish = true; resetWishForm()">+ 种草新裙子</van-button>
-        </div>
-
-        <div v-if="wishlist.length === 0" style="text-align: center; margin-top: 50px; color: var(--theme-text-aux);">
-          <div style="font-size: 40px; margin-bottom: 10px;">🌱</div>
-          <p>种草机空空如也~</p>
-        </div>
-
-        <div class="journal-card" v-for="(item, index) in wishlist" :key="item.id">
-          <div :class="['washi-tape', getTapeColor(item.id)]"></div>
-          <div class="card-title">{{ item.name }}</div>
-          <van-image v-if="item.image" width="100%" height="200" fit="cover" :src="item.image" radius="8" style="border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);"></van-image>
-          
-          <div style="margin-top: 12px; font-size: 14px; line-height: 1.8;">
-            <div>状态：<span style="color: var(--theme-accent); font-weight: bold;">{{ item.status === 'unreleased' ? '未开售' : '已截团' }}</span></div>
-            <div v-if="item.status === 'unreleased'">预计开售：{{ item.openDate || '未知' }}</div>
-            <div v-if="item.status === 'closed'">市场价：<span class="money-text">¥{{ item.marketPrice || '未知' }}</span></div>
-            <div class="aux-text" v-if="item.note">备注：{{ item.note }}</div>
-          </div>
-
-          <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
-            <van-button size="small" round plain color="var(--theme-text-aux)" @click="editWishItem(item.id)">编辑</van-button>
-            <van-button size="small" round color="var(--theme-primary)" @click="transferToWardrobe(item)">拔草入柜</van-button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 种草机表单 -->
-      <div v-else style="padding: 16px;">
-        <van-form @submit="onWishSubmit">
-          <van-cell-group inset>
-            <div style="padding: 10px 16px; font-weight: bold; color: var(--theme-accent);">🌱 种草记录</div>
-            <van-field name="uploader" label="裙子图片">
-              <template #input>
-                <van-uploader v-model="wishFileList" :max-count="1" :after-read="afterWishRead"></van-uploader>
-              </template>
-            </van-field>
-            <van-field v-model="wishFormData.name" label="裙子名称" placeholder="请输入名称" :rules="[{ required: true }]"></van-field>
-            
-            <van-field :model-value="wishFormData.status === 'unreleased' ? '未开售' : '已截团'" is-link readonly label="售卖状态" placeholder="请选择状态" @click="showWishStatusPicker = true"></van-field>
-            
-            <!-- 联动字段 -->
-            <van-field v-if="wishFormData.status === 'unreleased'" v-model="wishFormData.openDate" type="month" label="预计开售" placeholder="选择年月"></van-field>
-            <van-field v-if="wishFormData.status === 'closed'" v-model="wishFormData.marketPrice" type="number" label="市场价(¥)" placeholder="当前收盘价"></van-field>
-            
-            <van-field v-model="wishFormData.note" label="备注" placeholder="蹲点信息/代购等"></van-field>
-          </van-cell-group>
-
-          <div style="margin: 16px; display: flex; flex-direction: column; gap: 12px;">
-            <van-button round block type="primary" native-type="submit" color="var(--theme-accent)">保存种草</van-button>
-            <van-button v-if="editingWishId" round block plain type="danger" @click="deleteWishItem">删除记录</van-button>
-            <van-button round block plain @click="isEditingWish = false">返回列表</van-button>
-          </div>
-        </van-form>
-      </div>
-    </div>
-
-    <!-- ================= 视图 4：账单与统计 ================= -->
-    <div v-if="activeTab === 'calendar'">
-      
-      <!-- 尾款强提醒横幅 -->
-      <div v-if="currentMonthPending.count > 0" class="reminder-banner">
-        <div>
-          <div style="font-size: 18px; font-weight: bold; margin-bottom: 4px;">⚠️ 本月尾款预警</div>
-          <div style="font-size: 14px;">本月有 {{ currentMonthPending.count }} 笔尾款，共计 ¥{{ currentMonthPending.total }}</div>
-        </div>
-        <div style="font-size: 32px;">💸</div>
-      </div>
-
-      <div class="stat-board">
-        <div class="stat-item">
-          <div style="font-size: 12px; opacity: 0.9;">总消费 (定金+尾款)</div>
-          <div class="stat-num">¥{{ totalExpense }}</div>
-        </div>
-        <div style="width: 1px; background: rgba(255,255,255,0.3);"></div>
-        <div class="stat-item">
-          <div style="font-size: 12px; opacity: 0.9;">待补款总额</div>
-          <div class="stat-num" style="color: #FFE4E1;">¥{{ totalPending }}</div>
-        </div>
-      </div>
-
-      <div class="journal-card" style="padding: 10px;">
-        <div class="card-title" style="font-size: 16px; text-align: center;">每月消费趋势</div>
-        <div id="trendChart" style="width: 100%; height: 250px;"></div>
-      </div>
-
-      <div style="padding: 0 16px;">
-        <div class="card-title" style="font-size: 16px; margin-top: 20px;">待补款日历</div>
-        <div v-if="monthlyBills.length === 0" class="aux-text" style="text-align: center; margin-top: 20px;">暂无待补款账单</div>
-        
-        <div v-for="monthData in monthlyBills" :key="monthData.month" class="journal-card" style="margin: 10px 0; padding: 12px;">
-          <div style="font-weight: bold; border-bottom: 2px solid var(--theme-accent); padding-bottom: 5px; margin-bottom: 8px;">
-            {{ monthData.month === 'unknown' ? '工期未知' : monthData.month }} 
-            <span style="float: right; color: #D98C94;">待补: ¥{{ monthData.total }}</span>
-          </div>
-          <div v-for="item in monthData.items" :key="item.id" style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 4px;">
-            <span>{{ item.name }}</span>
-            <span>¥{{ item.balance }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= 视图 5：设置 ================= -->
-    <div v-if="activeTab === 'setting'" style="padding: 16px;">
-      <div class="journal-card">
-        <div class="card-title">个性化</div>
-        <van-cell center title="主题风格">
-          <template #right-icon>
-            <van-radio-group v-model="currentTheme" direction="horizontal" @change="changeTheme">
-              <van-radio name="default" checked-color="#D4C4B7">奶茶</van-radio>
-              <van-radio name="matcha" checked-color="#A3B19B">抹茶</van-radio>
-            </van-radio-group>
-          </template>
-        </van-cell>
-      </div>
-
-      <div class="journal-card">
-        <div class="card-title">数据管理</div>
-        <p class="aux-text" style="margin-bottom: 16px;">数据保存在本地浏览器中，清理缓存可能导致数据丢失，建议定期导出备份。</p>
-        <van-button block round color="var(--theme-primary)" @click="exportData" style="margin-bottom: 12px;">
-          导出数据备份 (.json)
-        </van-button>
-        <van-button block round plain color="var(--theme-primary)" @click="triggerImport">
-          导入数据恢复
-        </van-button>
-        <input type="file" id="fileInput" accept=".json" style="display: none;" @change="importData">
-      </div>
-      
-      <div style="text-align: center; margin-top: 30px;">
-        <van-button type="danger" plain size="small" @click="clearAllData">清空所有数据</van-button>
-      </div>
-    </div>
-
-    <!-- 各种弹出层组件 -->
-    <van-action-sheet v-model:show="showStatusSheet" :actions="statusActions" cancel-text="取消" close-on-click-action @select="onStatusSelect"></van-action-sheet>
-    <van-popup v-model:show="showTypePicker" round position="bottom"><van-picker :columns="typeColumns" @cancel="showTypePicker = false" @confirm="onTypeConfirm"></van-picker></van-popup>
-    <van-popup v-model:show="showAccTypePicker" round position="bottom"><van-picker :columns="accTypeColumns" @cancel="showAccTypePicker = false" @confirm="onAccTypeConfirm"></van-picker></van-popup>
-    <van-popup v-model:show="showFormStatusPicker" round position="bottom"><van-picker :columns="formStatusColumns" @cancel="showFormStatusPicker = false" @confirm="onFormStatusConfirm"></van-picker></van-popup>
-    <van-popup v-model:show="showWishStatusPicker" round position="bottom"><van-picker :columns="wishStatusColumns" @cancel="showWishStatusPicker = false" @confirm="onWishStatusConfirm"></van-picker></van-popup>
-
-    <van-tabbar v-model="activeTab" active-color="var(--theme-primary)" inactive-color="var(--theme-text-aux)" @change="onTabChange">
-      <van-tabbar-item name="home" icon="shop-o">衣橱</van-tabbar-item>
-      <van-tabbar-item name="wishlist" icon="like-o">种草</van-tabbar-item>
-      <van-tabbar-item name="add" icon="edit">记一笔</van-tabbar-item>
-      <van-tabbar-item name="calendar" icon="chart-trending-o">账单</van-tabbar-item>
-      <van-tabbar-item name="setting" icon="setting-o">设置</van-tabbar-item>
-    </van-tabbar>
   </div>
 
-  <script src="https://fastly.jsdelivr.net/npm/vue@3"></script>
-  <script src="https://fastly.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
-  <script src="https://fastly.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+  <!-- ================= 账单 ================= -->
+  <div v-if="activeTab === 'calendar'">
+    <div v-if="currentMonthPending.count > 0" class="reminder-banner">
+      <div>
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 4px;">⚠️ 本月尾款预警</div>
+        <div style="font-size: 14px;">本月有 {{ currentMonthPending.count }} 笔尾款，共计 ¥{{ currentMonthPending.total }}</div>
+      </div>
+      <div style="font-size: 32px;">💸</div>
+    </div>
 
-  <script>
-    // --- PWA 动态注入黑科技 ---
-    (function initPWA() {
-      if (!window.matchMedia('(display-mode: standalone)').matches) {
-        const manifest = {
-          name: "Lolita Wardrobe", short_name: "Wardrobe", display: "standalone",
-          background_color: "#F9F6F0", theme_color: "#D4C4B7",
-          icons: [{ src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23D4C4B7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white'%3E👗%3C/text%3E%3C/svg%3E", sizes: "192x192", type: "image/svg+xml" }]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
-      }
-    })();
+    <div class="stat-board">
+      <div class="stat-item">
+        <div style="font-size: 12px; opacity: 0.9;">总消费</div>
+        <div class="stat-num">¥{{ totalExpense }}</div>
+      </div>
+      <div style="width: 1px; background: rgba(255,255,255,0.3);"></div>
+      <div class="stat-item">
+        <div style="font-size: 12px; opacity: 0.9;">待补款总额</div>
+        <div class="stat-num" style="color: #FFE4E1;">¥{{ totalPending }}</div>
+      </div>
+    </div>
 
-    const { createApp, ref, reactive, onMounted, computed, nextTick } = Vue;
-    const { showToast, showConfirmDialog } = vant;
+    <div class="journal-card" style="padding: 10px;">
+      <div class="card-title" style="font-size: 16px; text-align: center;">每月消费趋势</div>
+      <div id="trendChart" style="width: 100%; height: 250px;"></div>
+    </div>
 
-    const app = createApp({
-      setup() {
-        const activeTab = ref('home');
-        const wardrobe = ref([]);
-        const wishlist = ref([]); 
-        const fileList = ref([]);
-        const editingId = ref(null);
-        const filterStatus = ref('all');
-        const currentTheme = ref('default');
+    <div style="padding: 0 16px;">
+      <div class="card-title" style="font-size: 16px; margin-top: 20px;">待补款日历</div>
+      <div v-if="monthlyBills.length === 0" class="aux-text" style="text-align: center; margin-top: 20px;">
+        暂无待补款账单
+      </div>
 
-        const isEditingWish = ref(false);
-        const editingWishId = ref(null);
-        const wishFileList = ref([]);
-        const initWishFormData = () => ({ id: Date.now().toString(), name: '', status: 'unreleased', openDate: '', marketPrice: '', note: '', image: '' });
-        const wishFormData = reactive(initWishFormData());
-        const showWishStatusPicker = ref(false);
-        const wishStatusColumns = [{ text: '未开售', value: 'unreleased' }, { text: '已截团', value: 'closed' }];
+      <div
+        v-for="monthData in monthlyBills"
+        :key="monthData.month"
+        class="journal-card"
+        style="margin: 10px 0; padding: 12px;"
+      >
+        <div style="font-weight: bold; border-bottom: 2px solid var(--theme-accent); padding-bottom: 5px; margin-bottom: 8px;">
+          {{ monthData.month === 'unknown' ? '工期未知' : monthData.month }}
+          <span style="float: right; color: #D98C94;">待补: ¥{{ monthData.total }}</span>
+        </div>
 
-        const showTypePicker = ref(false);
-        const typeColumns = [{ text: 'JSK', value: 'JSK' }, { text: 'OP', value: 'OP' }, { text: 'SK', value: 'SK' }, { text: 'SP', value: 'SP' }, { text: '背带款', value: '背带' }];
-        const showAccTypePicker = ref(false);
-        const currentAccIndex = ref(-1);
-        const accTypeColumns = [{ text: '边夹', value: '边夹' }, { text: 'BNT', value: 'BNT' }, { text: 'KC', value: 'KC' }, { text: '头纱', value: '头纱' }, { text: '花丸', value: '花丸' }, { text: '发带', value: '发带' }, { text: '手袖', value: '手袖' }, { text: '项链', value: '项链' }, { text: '罩纱/裙', value: '罩纱' }, { text: '其他', value: '其他' }];
-        const showFormStatusPicker = ref(false);
-        const formStatusColumns = [{ text: '待补款', value: 'pending' }, { text: '已补款', value: 'paid' }, { text: '已到货', value: 'arrived' }, { text: '已出物', value: 'sold' }];
-        const showStatusSheet = ref(false);
-        const currentOperateItem = ref(null);
-        const statusActions = [{ name: '待补款', value: 'pending' }, { name: '已补款', value: 'paid' }, { name: '已到货', value: 'arrived' }, { name: '已出物', value: 'sold' }];
+        <div
+          v-for="item in monthData.items"
+          :key="item.id"
+          style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 4px;"
+        >
+          <span>{{ item.name }}</span>
+          <span>¥{{ item.balance }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        let chartInstance = null;
-        localforage.config({ name: 'LolitaDB', storeName: 'wardrobe' });
+  <!-- ================= 设置 ================= -->
+  <div v-if="activeTab === 'setting'" style="padding: 16px;">
+    <div class="journal-card">
+      <div class="card-title">个性化</div>
 
-        const initFormData = () => ({ id: Date.now().toString(), name: '', type: 'JSK', deposit: '', balance: '', date: '', note: '', status: 'pending', image: '', accessories: [] });
-        const formData = reactive(initFormData());
+      <van-cell center title="主题风格">
+        <template #right-icon>
+          <van-radio-group v-model="currentTheme" direction="horizontal" @change="changeTheme">
+            <van-radio name="default" checked-color="#D4C4B7">奶茶</van-radio>
+            <van-radio name="matcha" checked-color="#A3B19B">抹茶</van-radio>
+          </van-radio-group>
+        </template>
+      </van-cell>
+    </div>
 
-        onMounted(async () => {
-          try {
-            const data = await localforage.getItem('wardrobe_v3');
-            if (data) {
-              wardrobe.value = data.wardrobe || [];
-              wishlist.value = data.wishlist || [];
-            }
-            const savedTheme = localStorage.getItem('wardrobe_theme');
-            if (savedTheme) {
-              currentTheme.value = savedTheme;
-              document.documentElement.setAttribute('data-theme', savedTheme);
-            }
-            
-            if ("Notification" in window && Notification.permission === "default") {
-              setTimeout(() => Notification.requestPermission(), 3000);
-            }
+    <div class="journal-card">
+      <div class="card-title">数据管理</div>
+      <p class="aux-text" style="margin-bottom: 16px;">
+        数据保存在本地浏览器中，清理缓存可能导致数据丢失，建议定期导出备份。
+      </p>
 
-            // 监听窗口大小变化，自适应图表
-            window.addEventListener('resize', () => {
-              if (chartInstance) chartInstance.resize();
-            });
+      <van-button block round color="var(--theme-primary)" @click="exportData" style="margin-bottom: 12px;">
+        导出数据备份 (.json)
+      </van-button>
 
-          } catch (e) { console.error("读取数据失败", e); }
-        });
+      <van-button block round plain color="var(--theme-primary)" @click="triggerImport">
+        导入数据恢复
+      </van-button>
 
-        const saveData = async () => {
-          await localforage.setItem('wardrobe_v3', {
-            wardrobe: JSON.parse(JSON.stringify(wardrobe.value)),
-            wishlist: JSON.parse(JSON.stringify(wishlist.value))
-          });
-        };
+      <input type="file" id="fileInput" accept=".json" style="display: none;" @change="importData" />
+    </div>
 
-        const currentMonthPending = computed(() => {
-          const now = new Date();
-          const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-          let count = 0;
-          let total = 0;
-          
-          wardrobe.value.forEach(item => {
-            if (item.status === 'pending' && item.date === currentMonthStr) {
-              if (Number(item.balance) > 0) { count++; total += Number(item.balance); }
-              (item.accessories || []).forEach(acc => {
-                if (Number(acc.balance) > 0) { count++; total += Number(acc.balance); }
-              });
-            }
-          });
-          return { count, total };
-        });
+    <div style="text-align: center; margin-top: 30px;">
+      <van-button type="danger" plain size="small" @click="clearAllData">
+        清空所有数据
+      </van-button>
+    </div>
+  </div>
 
-        const onWishStatusConfirm = ({ selectedOptions }) => { wishFormData.status = selectedOptions[0].value; showWishStatusPicker.value = false; };
-        const resetWishForm = () => { Object.assign(wishFormData, initWishFormData()); wishFileList.value = []; editingWishId.value = null; };
-        const afterWishRead = async (file) => { file.status = 'uploading'; file.message = '压缩中...'; try { wishFormData.image = await compressImage(file.file); file.status = 'done'; } catch (e) { file.status = 'failed'; } };
-        const onWishSubmit = async () => {
-          if (editingWishId.value) {
-            const index = wishlist.value.findIndex(i => i.id === editingWishId.value);
-            if (index > -1) wishlist.value[index] = JSON.parse(JSON.stringify(wishFormData));
-          } else { wishlist.value.unshift(JSON.parse(JSON.stringify(wishFormData))); }
-          await saveData(); showToast('种草成功'); isEditingWish.value = false;
-        };
-        const editWishItem = (id) => {
-          const item = wishlist.value.find(i => i.id === id);
-          Object.assign(wishFormData, JSON.parse(JSON.stringify(item)));
-          editingWishId.value = item.id; wishFileList.value = item.image ? [{ url: item.image }] : []; isEditingWish.value = true;
-        };
-        const deleteWishItem = () => {
-          showConfirmDialog({ title: '确认删除', message: '确定要删除这条种草记录吗？' }).then(async () => {
-            wishlist.value = wishlist.value.filter(i => i.id !== editingWishId.value); await saveData(); showToast('已删除'); isEditingWish.value = false;
-          }).catch(() => {});
-        };
-        const transferToWardrobe = (wishItem) => {
-          showConfirmDialog({ title: '拔草入柜', message: '将此裙子转移到衣橱并填写定金？' }).then(async () => {
-            wishlist.value = wishlist.value.filter(i => i.id !== wishItem.id);
-            Object.assign(formData, initFormData());
-            formData.name = wishItem.name; formData.image = wishItem.image; formData.note = wishItem.note;
-            fileList.value = wishItem.image ? [{ url: wishItem.image }] : [];
-            await saveData(); activeTab.value = 'add'; showToast('请补充定金和尾款信息');
-          }).catch(() => {});
-        };
+  <!-- 弹出层 -->
+  <van-action-sheet
+    v-model:show="showStatusSheet"
+    :actions="statusActions"
+    cancel-text="取消"
+    close-on-click-action
+    @select="onStatusSelect"
+  ></van-action-sheet>
 
-        const onTypeConfirm = ({ selectedOptions }) => { formData.type = selectedOptions[0].value; showTypePicker.value = false; };
-        const onAccTypeConfirm = ({ selectedOptions }) => { if (currentAccIndex.value !== -1) formData.accessories[currentAccIndex.value].type = selectedOptions[0].value; showAccTypePicker.value = false; };
-        const openAccTypePicker = (index) => { currentAccIndex.value = index; showAccTypePicker.value = true; };
-        const onFormStatusConfirm = ({ selectedOptions }) => { formData.status = selectedOptions[0].value; showFormStatusPicker.value = false; };
+  <van-popup v-model:show="showTypePicker" round position="bottom">
+    <van-picker :columns="typeColumns" @cancel="showTypePicker = false" @confirm="onTypeConfirm"></van-picker>
+  </van-popup>
 
-        const changeTheme = (val) => { document.documentElement.setAttribute('data-theme', val); localStorage.setItem('wardrobe_theme', val); };
-        const exportData = () => {
-          const dataStr = JSON.stringify({ wardrobe: wardrobe.value, wishlist: wishlist.value });
-          const blob = new Blob([dataStr], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a'); a.href = url; a.download = `lolita_backup_${new Date().toISOString().slice(0,10)}.json`;
-          a.click(); URL.revokeObjectURL(url); showToast('导出成功');
-        };
-        const triggerImport = () => document.getElementById('fileInput').click();
-        const importData = (event) => {
-          const file = event.target.files[0]; if (!file) return;
-          const reader = new FileReader();
-          reader.onload = async (e) => {
-            try {
-              const importedData = JSON.parse(e.target.result);
-              showConfirmDialog({ title: '确认导入', message: '导入将覆盖当前所有数据，是否继续？' }).then(async () => {
-                if(Array.isArray(importedData)) { wardrobe.value = importedData; wishlist.value = []; } 
-                else { wardrobe.value = importedData.wardrobe || []; wishlist.value = importedData.wishlist || []; }
-                await saveData(); showToast('导入成功'); event.target.value = '';
-              }).catch(() => { event.target.value = ''; });
-            } catch (err) { showToast('解析文件失败'); }
-          };
-          reader.readAsText(file);
-        };
-        const clearAllData = () => {
-          showConfirmDialog({ title: '危险操作', message: '确定要清空所有数据吗？此操作不可逆！' }).then(async () => {
-            wardrobe.value = []; wishlist.value = []; await saveData(); showToast('已清空');
-          }).catch(() => {});
-        };
+  <van-popup v-model:show="showAccTypePicker" round position="bottom">
+    <van-picker :columns="accTypeColumns" @cancel="showAccTypePicker = false" @confirm="onAccTypeConfirm"></van-picker>
+  </van-popup>
 
-        const filteredWardrobe = computed(() => {
-          if (filterStatus.value === 'all') return wardrobe.value;
-          return wardrobe.value.filter(item => item.status === filterStatus.value);
-        });
+  <van-popup v-model:show="showFormStatusPicker" round position="bottom">
+    <van-picker :columns="formStatusColumns" @cancel="showFormStatusPicker = false" @confirm="onFormStatusConfirm"></van-picker>
+  </van-popup>
 
-        const totalExpense = computed(() => {
-          let total = 0;
-          wardrobe.value.forEach(item => {
-            total += Number(item.deposit || 0) + Number(item.balance || 0);
-            (item.accessories || []).forEach(acc => { total += Number(acc.deposit || 0) + Number(acc.balance || 0); });
-          });
-          return total;
-        });
+  <van-popup v-model:show="showWishStatusPicker" round position="bottom">
+    <van-picker :columns="wishStatusColumns" @cancel="showWishStatusPicker = false" @confirm="onWishStatusConfirm"></van-picker>
+  </van-popup>
 
-        const totalPending = computed(() => {
-          let total = 0;
-          wardrobe.value.forEach(item => {
-            if (item.status === 'pending') {
-              total += Number(item.balance || 0);
-              (item.accessories || []).forEach(acc => { total += Number(acc.balance || 0); });
-            }
-          });
-          return total;
-        });
+  <van-tabbar
+    v-model="activeTab"
+    active-color="var(--theme-primary)"
+    inactive-color="var(--theme-text-aux)"
+    @change="onTabChange"
+  >
+    <van-tabbar-item name="home" icon="shop-o">衣橱</van-tabbar-item>
+    <van-tabbar-item name="wishlist" icon="like-o">种草</van-tabbar-item>
+    <van-tabbar-item name="add" icon="edit">记一笔</van-tabbar-item>
+    <van-tabbar-item name="calendar" icon="chart-trending-o">账单</van-tabbar-item>
+    <van-tabbar-item name="setting" icon="setting-o">设置</van-tabbar-item>
+  </van-tabbar>
+</div>
 
-        const monthlyBills = computed(() => {
-          const map = {};
-          wardrobe.value.forEach(item => {
-            if (item.status === 'pending') {
-              const m = item.date || 'unknown';
-              if (!map[m]) map[m] = { month: m, total: 0, items: [] };
-              if (Number(item.balance) > 0) { map[m].total += Number(item.balance); map[m].items.push({ id: item.id, name: item.name, balance: item.balance }); }
-              (item.accessories || []).forEach(acc => {
-                if (Number(acc.balance) > 0) { map[m].total += Number(acc.balance); map[m].items.push({ id: acc.id, name: `${item.name}-${acc.type || '小物'}`, balance: acc.balance }); }
-              });
-            }
-          });
-          return Object.values(map).sort((a, b) => a.month === 'unknown' ? 1 : a.month.localeCompare(b.month));
-        });
+<script src="https://fastly.jsdelivr.net/npm/vue@3"></script>
+<script src="https://fastly.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+<script src="https://fastly.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 
-        // 修复后的图表渲染逻辑（折线图）
-        const renderChart = () => {
-          if (typeof echarts === 'undefined') return;
-          const chartDom = document.getElementById('trendChart');
-          if (!chartDom) return;
-          
-          if (chartInstance) {
-            chartInstance.dispose();
+<script>
+  (function initPWA() {
+    const manifest = {
+      name: "Lolita Wardrobe",
+      short_name: "Wardrobe",
+      display: "standalone",
+      background_color: "#F9F6F0",
+      theme_color: "#D4C4B7",
+      icons: [
+        {
+          src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23D4C4B7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white'%3E👗%3C/text%3E%3C/svg%3E",
+          sizes: "192x192",
+          type: "image/svg+xml"
+        }
+      ]
+    };
+
+    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = URL.createObjectURL(manifestBlob);
+    document.head.appendChild(link);
+  })();
+
+  const { createApp, ref, reactive, onMounted, computed, nextTick } = Vue;
+  const { showToast, showConfirmDialog } = vant;
+
+  const app = createApp({
+    setup() {
+      const activeTab = ref('home');
+      const wardrobe = ref([]);
+      const wishlist = ref([]);
+
+      const fileList = ref([]);
+      const editingId = ref(null);
+      const filterStatus = ref('all');
+      const currentTheme = ref('default');
+
+      const wardrobeViewMode = ref('list');
+
+      const isEditingWish = ref(false);
+      const editingWishId = ref(null);
+      const wishFileList = ref([]);
+
+      const initWishFormData = () => ({
+        id: Date.now().toString(),
+        name: '',
+        status: 'unreleased',
+        openDate: '',
+        marketPrice: '',
+        note: '',
+        image: ''
+      });
+
+      const wishFormData = reactive(initWishFormData());
+
+      const showWishStatusPicker = ref(false);
+      const wishStatusColumns = [
+        { text: '未开售', value: 'unreleased' },
+        { text: '已截团', value: 'closed' }
+      ];
+
+      const showTypePicker = ref(false);
+      const typeColumns = [
+        { text: 'JSK', value: 'JSK' },
+        { text: 'OP', value: 'OP' },
+        { text: 'SK', value: 'SK' },
+        { text: 'SP', value: 'SP' },
+        { text: '背带款', value: '背带' }
+      ];
+
+      const showAccTypePicker = ref(false);
+      const currentAccIndex = ref(-1);
+      const accTypeColumns = [
+        { text: '边夹', value: '边夹' },
+        { text: 'BNT', value: 'BNT' },
+        { text: 'KC', value: 'KC' },
+        { text: '头纱', value: '头纱' },
+        { text: '花丸', value: '花丸' },
+        { text: '发带', value: '发带' },
+        { text: '手袖', value: '手袖' },
+        { text: '项链', value: '项链' },
+        { text: '罩纱/裙', value: '罩纱' },
+        { text: '其他', value: '其他' }
+      ];
+
+      const showFormStatusPicker = ref(false);
+      const formStatusColumns = [
+        { text: '待补款', value: 'pending' },
+        { text: '已补款', value: 'paid' },
+        { text: '已到货', value: 'arrived' },
+        { text: '已出物', value: 'sold' }
+      ];
+
+      const showStatusSheet = ref(false);
+      const currentOperateItem = ref(null);
+      const statusActions = [
+        { name: '待补款', value: 'pending' },
+        { name: '已补款', value: 'paid' },
+        { name: '已到货', value: 'arrived' },
+        { name: '已出物', value: 'sold' }
+      ];
+
+      let chartInstance = null;
+
+      localforage.config({
+        name: 'LolitaDB',
+        storeName: 'wardrobe'
+      });
+
+      const initFormData = () => ({
+        id: Date.now().toString(),
+        name: '',
+        type: 'JSK',
+        deposit: '',
+        balance: '',
+        date: '',
+        note: '',
+        status: 'pending',
+        image: '',
+        accessories: []
+      });
+
+      const formData = reactive(initFormData());
+
+      onMounted(async () => {
+        try {
+          const data = await localforage.getItem('wardrobe_v3');
+          if (data) {
+            wardrobe.value = Array.isArray(data) ? data : (data.wardrobe || []);
+            wishlist.value = Array.isArray(data) ? [] : (data.wishlist || []);
           }
-          chartInstance = echarts.init(chartDom);
-          
-          const monthData = {};
-          
-          wardrobe.value.forEach(item => {
-            let m = item.date;
-            if (!m) {
-              const d = new Date(parseInt(item.id));
-              if (!isNaN(d.getTime())) {
-                m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-              } else {
-                m = '未知';
-              }
-            }
 
-            if (!monthData[m]) monthData[m] = { expense: 0, pending: 0 };
-            
-            monthData[m].expense += Number(item.deposit || 0);
-            if (item.status !== 'pending') {
-              monthData[m].expense += Number(item.balance || 0);
-            } else {
-              monthData[m].pending += Number(item.balance || 0);
+          const savedTheme = localStorage.getItem('wardrobe_theme');
+          if (savedTheme) {
+            currentTheme.value = savedTheme;
+            document.documentElement.setAttribute('data-theme', savedTheme);
+          }
+
+          const savedMode = localStorage.getItem('wardrobe_view_mode');
+          if (['list', 'large', 'small'].includes(savedMode)) {
+            wardrobeViewMode.value = savedMode;
+          }
+
+          if ("Notification" in window && Notification.permission === "default") {
+            setTimeout(() => Notification.requestPermission(), 3000);
+          }
+
+          window.addEventListener('resize', () => {
+            if (chartInstance) chartInstance.resize();
+          });
+        } catch (e) {
+          console.error('读取数据失败', e);
+        }
+      });
+
+      const saveData = async () => {
+        await localforage.setItem('wardrobe_v3', {
+          wardrobe: JSON.parse(JSON.stringify(wardrobe.value)),
+          wishlist: JSON.parse(JSON.stringify(wishlist.value))
+        });
+      };
+
+      const setWardrobeViewMode = (mode) => {
+        wardrobeViewMode.value = mode;
+        localStorage.setItem('wardrobe_view_mode', mode);
+      };
+
+      const getStatusText = (status) => ({
+        pending: '待补款',
+        paid: '已补款',
+        arrived: '已到货',
+        sold: '已出物'
+      }[status] || '未知');
+
+      const getTapeColor = (id) => {
+        const str = String(id || '');
+        const code = str ? str.charCodeAt(str.length - 1) : 0;
+        return ['tape-pink', 'tape-green', 'tape-brown'][code % 3];
+      };
+
+      const filteredWardrobe = computed(() => {
+        if (filterStatus.value === 'all') return wardrobe.value;
+        return wardrobe.value.filter(item => item.status === filterStatus.value);
+      });
+
+      const totalExpense = computed(() => {
+        let total = 0;
+
+        wardrobe.value.forEach(item => {
+          total += Number(item.deposit || 0) + Number(item.balance || 0);
+          (item.accessories || []).forEach(acc => {
+            total += Number(acc.deposit || 0) + Number(acc.balance || 0);
+          });
+        });
+
+        return total;
+      });
+
+      const totalPending = computed(() => {
+        let total = 0;
+
+        wardrobe.value.forEach(item => {
+          if (item.status === 'pending') {
+            total += Number(item.balance || 0);
+            (item.accessories || []).forEach(acc => {
+              total += Number(acc.balance || 0);
+            });
+          }
+        });
+
+        return total;
+      });
+
+      const currentMonthPending = computed(() => {
+        const now = new Date();
+        const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+        let count = 0;
+        let total = 0;
+
+        wardrobe.value.forEach(item => {
+          if (item.status === 'pending' && item.date === currentMonthStr) {
+            if (Number(item.balance) > 0) {
+              count++;
+              total += Number(item.balance);
             }
 
             (item.accessories || []).forEach(acc => {
-              monthData[m].expense += Number(acc.deposit || 0);
-              if (item.status !== 'pending') {
-                monthData[m].expense += Number(acc.balance || 0);
-              } else {
-                monthData[m].pending += Number(acc.balance || 0);
+              if (Number(acc.balance) > 0) {
+                count++;
+                total += Number(acc.balance);
               }
             });
-          });
-
-          const sortedMonths = Object.keys(monthData)
-            .filter(m => m !== '未知')
-            .sort();
-            
-          const expenseArr = sortedMonths.map(m => monthData[m].expense);
-          const pendingArr = sortedMonths.map(m => monthData[m].pending);
-
-          if (sortedMonths.length === 0) {
-            chartInstance.setOption({
-              title: { text: '暂无消费数据', left: 'center', top: 'center', textStyle: { color: '#9E958D', fontSize: 14, fontWeight: 'normal' } }
-            });
-            return;
           }
+        });
 
-          // 折线图配置
-          chartInstance.setOption({
-            tooltip: { trigger: 'axis' }, 
-            legend: { data: ['已支出', '待补款'], bottom: 0 },
-            grid: { left: '3%', right: '4%', bottom: '15%', top: '10%', containLabel: true },
-            xAxis: { 
-              type: 'category', 
-              boundaryGap: false, // 让折线从边缘开始
-              data: sortedMonths, 
-              axisLine: { lineStyle: { color: '#9E958D' } } 
-            },
-            yAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#EAEAEA' } } },
-            series: [
-              { 
-                name: '已支出', 
-                type: 'line', 
-                smooth: true, // 平滑曲线
-                data: expenseArr, 
-                itemStyle: { color: '#D4C4B7' },
-                areaStyle: { color: 'rgba(212, 196, 183, 0.3)' } // 面积填充
-              },
-              { 
-                name: '待补款', 
-                type: 'line', 
-                smooth: true, 
-                data: pendingArr, 
-                itemStyle: { color: '#E2C2C6' },
-                areaStyle: { color: 'rgba(226, 194, 198, 0.3)' } 
-              }
-            ]
-          });
-          
-          chartInstance.resize();
-        };
+        return { count, total };
+      });
 
-        const onTabChange = (name) => {
-          if (name === 'calendar') {
-            nextTick(() => { 
-              setTimeout(() => {
-                renderChart(); 
-              }, 300); 
-            });
-          }
-        };
+      const monthlyBills = computed(() => {
+        const map = {};
 
-        const getStatusText = (status) => ({ pending: '待补款', paid: '已补款', arrived: '已到货', sold: '已出物' }[status] || '未知');
-        const getTapeColor = (id) => ['tape-pink', 'tape-green', 'tape-brown'][(String(id||'').charCodeAt(String(id||'').length - 1) || 0) % 3];
+        wardrobe.value.forEach(item => {
+          if (item.status !== 'pending') return;
 
-        const openStatusSheet = (item) => { currentOperateItem.value = item; showStatusSheet.value = true; };
-        const onStatusSelect = async (action) => {
-          if (currentOperateItem.value) { currentOperateItem.value.status = action.value; await saveData(); showToast(`已标记为 ${action.name}`); }
-        };
+          const m = item.date || 'unknown';
 
-        const addAccessory = () => {
-          if (!formData.accessories) formData.accessories = [];
-          formData.accessories.push({ id: Date.now().toString(), type: '', deposit: '', balance: '' });
-        };
-        const removeAccessory = (index) => formData.accessories.splice(index, 1);
-
-        const compressImage = (file) => {
-          return new Promise((resolve) => {
-            const reader = new FileReader(); reader.readAsDataURL(file);
-            reader.onload = (e) => {
-              const img = new Image(); img.src = e.target.result;
-              img.onload = () => {
-                const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                let { width, height } = img; if (width > 800) { height *= 800 / width; width = 800; }
-                canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
-              };
+          if (!map[m]) {
+            map[m] = {
+              month: m,
+              total: 0,
+              items: []
             };
+          }
+
+          if (Number(item.balance) > 0) {
+            map[m].total += Number(item.balance);
+            map[m].items.push({
+              id: item.id,
+              name: item.name,
+              balance: item.balance
+            });
+          }
+
+          (item.accessories || []).forEach(acc => {
+            if (Number(acc.balance) > 0) {
+              map[m].total += Number(acc.balance);
+              map[m].items.push({
+                id: acc.id,
+                name: `${item.name}-${acc.type || '小物'}`,
+                balance: acc.balance
+              });
+            }
           });
+        });
+
+        return Object.values(map).sort((a, b) => {
+          if (a.month === 'unknown') return 1;
+          if (b.month === 'unknown') return -1;
+          return a.month.localeCompare(b.month);
+        });
+      });
+
+      const getItemMonth = (item) => {
+        if (item.date) return item.date;
+
+        const d = new Date(parseInt(item.id, 10));
+        if (!isNaN(d.getTime())) {
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        return '未知';
+      };
+
+      const renderChart = () => {
+        if (typeof echarts === 'undefined') return;
+
+        const chartDom = document.getElementById('trendChart');
+        if (!chartDom) return;
+
+        if (chartInstance) {
+          chartInstance.dispose();
+        }
+
+        chartInstance = echarts.init(chartDom);
+
+        const monthData = {};
+
+        wardrobe.value.forEach(item => {
+          const m = getItemMonth(item);
+          if (!monthData[m]) {
+            monthData[m] = {
+              expense: 0,
+              pending: 0
+            };
+          }
+
+          monthData[m].expense += Number(item.deposit || 0);
+
+          if (item.status === 'pending') {
+            monthData[m].pending += Number(item.balance || 0);
+          } else {
+            monthData[m].expense += Number(item.balance || 0);
+          }
+
+          (item.accessories || []).forEach(acc => {
+            monthData[m].expense += Number(acc.deposit || 0);
+
+            if (item.status === 'pending') {
+              monthData[m].pending += Number(acc.balance || 0);
+            } else {
+              monthData[m].expense += Number(acc.balance || 0);
+            }
+          });
+        });
+
+        const sortedMonths = Object.keys(monthData)
+          .filter(m => m !== '未知')
+          .sort();
+
+        if (sortedMonths.length === 0) {
+          chartInstance.setOption({
+            title: {
+              text: '暂无消费数据',
+              left: 'center',
+              top: 'center',
+              textStyle: {
+                color: '#9E958D',
+                fontSize: 14,
+                fontWeight: 'normal'
+              }
+            }
+          });
+          return;
+        }
+
+        const expenseArr = sortedMonths.map(m => monthData[m].expense);
+        const pendingArr = sortedMonths.map(m => monthData[m].pending);
+
+        chartInstance.setOption({
+          tooltip: { trigger: 'axis' },
+          legend: {
+            data: ['已支出', '待补款'],
+            bottom: 0
+          },
+          grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '15%',
+            top: '10%',
+            containLabel: true
+          },
+          xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: sortedMonths,
+            axisLine: {
+              lineStyle: { color: '#9E958D' }
+            }
+          },
+          yAxis: {
+            type: 'value',
+            splitLine: {
+              lineStyle: {
+                type: 'dashed',
+                color: '#EAEAEA'
+              }
+            }
+          },
+          series: [
+            {
+              name: '已支出',
+              type: 'line',
+              smooth: true,
+              data: expenseArr,
+              itemStyle: { color: '#D4C4B7' },
+              areaStyle: { color: 'rgba(212, 196, 183, 0.3)' }
+            },
+            {
+              name: '待补款',
+              type: 'line',
+              smooth: true,
+              data: pendingArr,
+              itemStyle: { color: '#E2C2C6' },
+              areaStyle: { color: 'rgba(226, 194, 198, 0.3)' }
+            }
+          ]
+        });
+
+        chartInstance.resize();
+      };
+
+      const onTabChange = (name) => {
+        if (name === 'calendar') {
+          nextTick(() => {
+            setTimeout(renderChart, 300);
+          });
+        }
+      };
+
+      const compressImage = (file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+
+          reader.onload = (e) => {
+            const img = new Image();
+
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+
+              let { width, height } = img;
+
+              if (width > 900) {
+                height = Math.round(height * 900 / width);
+                width = 900;
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL('image/jpeg', 0.72));
+            };
+
+            img.onerror = reject;
+            img.src = e.target.result;
+          };
+
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      };
+
+      const afterRead = async (file) => {
+        file.status = 'uploading';
+        file.message = '压缩中...';
+
+        try {
+          formData.image = await compressImage(file.file);
+          file.status = 'done';
+        } catch (e) {
+          file.status = 'failed';
+          showToast('图片处理失败');
+        }
+      };
+
+      const afterWishRead = async (file) => {
+        file.status = 'uploading';
+        file.message = '压缩中...';
+
+        try {
+          wishFormData.image = await compressImage(file.file);
+          file.status = 'done';
+        } catch (e) {
+          file.status = 'failed';
+          showToast('图片处理失败');
+        }
+      };
+
+      const onSubmit = async () => {
+        if (editingId.value) {
+          const index = wardrobe.value.findIndex(i => i.id === editingId.value);
+          if (index > -1) {
+            wardrobe.value[index] = JSON.parse(JSON.stringify(formData));
+          }
+        } else {
+          wardrobe.value.unshift(JSON.parse(JSON.stringify(formData)));
+        }
+
+        await saveData();
+        showToast('保存成功');
+        cancelEdit();
+      };
+
+      const editItem = (id) => {
+        const item = wardrobe.value.find(i => i.id === id);
+        if (!item) return;
+
+        Object.assign(formData, JSON.parse(JSON.stringify(item)));
+
+        if (!Array.isArray(formData.accessories)) {
+          formData.accessories = [];
+        }
+
+        editingId.value = item.id;
+        fileList.value = item.image ? [{ url: item.image }] : [];
+        activeTab.value = 'add';
+      };
+
+      const deleteItem = () => {
+        showConfirmDialog({
+          title: '确认删除',
+          message: '删除后无法恢复，确定吗？'
+        }).then(async () => {
+          wardrobe.value = wardrobe.value.filter(i => i.id !== editingId.value);
+          await saveData();
+          showToast('已删除');
+          cancelEdit();
+        }).catch(() => {});
+      };
+
+      const cancelEdit = () => {
+        Object.assign(formData, initFormData());
+        fileList.value = [];
+        editingId.value = null;
+        activeTab.value = 'home';
+      };
+
+      const addAccessory = () => {
+        if (!Array.isArray(formData.accessories)) {
+          formData.accessories = [];
+        }
+
+        formData.accessories.push({
+          id: Date.now().toString(),
+          type: '',
+          deposit: '',
+          balance: ''
+        });
+      };
+
+      const removeAccessory = (index) => {
+        formData.accessories.splice(index, 1);
+      };
+
+      const openStatusSheet = (item) => {
+        currentOperateItem.value = item;
+        showStatusSheet.value = true;
+      };
+
+      const onStatusSelect = async (action) => {
+        if (!currentOperateItem.value) return;
+
+        currentOperateItem.value.status = action.value;
+        await saveData();
+        showToast(`已标记为 ${action.name}`);
+      };
+
+      const onTypeConfirm = ({ selectedOptions }) => {
+        formData.type = selectedOptions[0].value;
+        showTypePicker.value = false;
+      };
+
+      const openAccTypePicker = (index) => {
+        currentAccIndex.value = index;
+        showAccTypePicker.value = true;
+      };
+
+      const onAccTypeConfirm = ({ selectedOptions }) => {
+        if (currentAccIndex.value !== -1) {
+          formData.accessories[currentAccIndex.value].type = selectedOptions[0].value;
+        }
+
+        showAccTypePicker.value = false;
+      };
+
+      const onFormStatusConfirm = ({ selectedOptions }) => {
+        formData.status = selectedOptions[0].value;
+        showFormStatusPicker.value = false;
+      };
+
+      const resetWishForm = () => {
+        Object.assign(wishFormData, initWishFormData());
+        wishFileList.value = [];
+        editingWishId.value = null;
+      };
+
+      const onWishStatusConfirm = ({ selectedOptions }) => {
+        wishFormData.status = selectedOptions[0].value;
+        showWishStatusPicker.value = false;
+      };
+
+      const onWishSubmit = async () => {
+        if (editingWishId.value) {
+          const index = wishlist.value.findIndex(i => i.id === editingWishId.value);
+          if (index > -1) {
+            wishlist.value[index] = JSON.parse(JSON.stringify(wishFormData));
+          }
+        } else {
+          wishlist.value.unshift(JSON.parse(JSON.stringify(wishFormData)));
+        }
+
+        await saveData();
+        showToast('种草成功');
+        isEditingWish.value = false;
+      };
+
+      const editWishItem = (id) => {
+        const item = wishlist.value.find(i => i.id === id);
+        if (!item) return;
+
+        Object.assign(wishFormData, JSON.parse(JSON.stringify(item)));
+        editingWishId.value = item.id;
+        wishFileList.value = item.image ? [{ url: item.image }] : [];
+        isEditingWish.value = true;
+      };
+
+      const deleteWishItem = () => {
+        showConfirmDialog({
+          title: '确认删除',
+          message: '确定要删除这条种草记录吗？'
+        }).then(async () => {
+          wishlist.value = wishlist.value.filter(i => i.id !== editingWishId.value);
+          await saveData();
+          showToast('已删除');
+          isEditingWish.value = false;
+        }).catch(() => {});
+      };
+
+      const transferToWardrobe = (wishItem) => {
+        showConfirmDialog({
+          title: '拔草入柜',
+          message: '将此裙子转移到衣橱并填写定金？'
+        }).then(async () => {
+          wishlist.value = wishlist.value.filter(i => i.id !== wishItem.id);
+
+          Object.assign(formData, initFormData());
+          formData.name = wishItem.name;
+          formData.image = wishItem.image;
+          formData.note = wishItem.note;
+
+          fileList.value = wishItem.image ? [{ url: wishItem.image }] : [];
+
+          await saveData();
+          activeTab.value = 'add';
+          showToast('请补充定金和尾款信息');
+        }).catch(() => {});
+      };
+
+      const changeTheme = (val) => {
+        document.documentElement.setAttribute('data-theme', val);
+        localStorage.setItem('wardrobe_theme', val);
+      };
+
+      const exportData = () => {
+        const dataStr = JSON.stringify({
+          wardrobe: wardrobe.value,
+          wishlist: wishlist.value
+        }, null, 2);
+
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `lolita_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+
+        URL.revokeObjectURL(url);
+        showToast('导出成功');
+      };
+
+      const triggerImport = () => {
+        document.getElementById('fileInput').click();
+      };
+
+      const importData = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = async (e) => {
+          try {
+            const importedData = JSON.parse(e.target.result);
+
+            showConfirmDialog({
+              title: '确认导入',
+              message: '导入将覆盖当前所有数据，是否继续？'
+            }).then(async () => {
+              if (Array.isArray(importedData)) {
+                wardrobe.value = importedData;
+                wishlist.value = [];
+              } else {
+                wardrobe.value = importedData.wardrobe || [];
+                wishlist.value = importedData.wishlist || [];
+              }
+
+              await saveData();
+              showToast('导入成功');
+              event.target.value = '';
+            }).catch(() => {
+              event.target.value = '';
+            });
+          } catch (err) {
+            showToast('解析文件失败');
+            event.target.value = '';
+          }
         };
 
-        const afterRead = async (file) => {
-          file.status = 'uploading'; file.message = '压缩中...';
-          try { formData.image = await compressImage(file.file); file.status = 'done'; } catch (e) { file.status = 'failed'; }
-        };
+        reader.readAsText(file);
+      };
 
-        const onSubmit = async () => {
-          if (editingId.value) {
-            const index = wardrobe.value.findIndex(i => i.id === editingId.value);
-            if (index > -1) wardrobe.value[index] = JSON.parse(JSON.stringify(formData));
-          } else { wardrobe.value.unshift(JSON.parse(JSON.stringify(formData))); }
-          await saveData(); showToast('保存成功'); cancelEdit();
-        };
+      const clearAllData = () => {
+        showConfirmDialog({
+          title: '危险操作',
+          message: '确定要清空所有数据吗？此操作不可逆！'
+        }).then(async () => {
+          wardrobe.value = [];
+          wishlist.value = [];
+          await saveData();
+          showToast('已清空');
+        }).catch(() => {});
+      };
 
-        const editItem = (id) => {
-          const item = wardrobe.value.find(i => i.id === id);
-          Object.assign(formData, JSON.parse(JSON.stringify(item)));
-          if (!formData.accessories) formData.accessories = [];
-          editingId.value = item.id; fileList.value = item.image ? [{ url: item.image }] : []; activeTab.value = 'add';
-        };
+      return {
+        activeTab,
+        wardrobe,
+        wishlist,
+        formData,
+        fileList,
+        editingId,
+        filterStatus,
+        currentTheme,
+        wardrobeViewMode,
 
-        const deleteItem = () => {
-          showConfirmDialog({ title: '确认删除', message: '删除后无法恢复，确定吗？' }).then(async () => {
-            wardrobe.value = wardrobe.value.filter(i => i.id !== editingId.value); await saveData(); showToast('已删除'); cancelEdit();
-          }).catch(() => {});
-        };
+        isEditingWish,
+        editingWishId,
+        wishFileList,
+        wishFormData,
 
-        const cancelEdit = () => { Object.assign(formData, initFormData()); fileList.value = []; editingId.value = null; activeTab.value = 'home'; };
+        showWishStatusPicker,
+        wishStatusColumns,
+        showTypePicker,
+        typeColumns,
+        showAccTypePicker,
+        accTypeColumns,
+        showFormStatusPicker,
+        formStatusColumns,
+        showStatusSheet,
+        statusActions,
 
-        return {
-          activeTab, wardrobe, formData, fileList, editingId, filterStatus, currentTheme,
-          wishlist, isEditingWish, editingWishId, wishFormData, wishFileList, showWishStatusPicker, wishStatusColumns,
-          onWishStatusConfirm, resetWishForm, afterWishRead, onWishSubmit, editWishItem, deleteWishItem, transferToWardrobe,
-          showTypePicker, typeColumns, onTypeConfirm, showAccTypePicker, accTypeColumns, openAccTypePicker, onAccTypeConfirm,
-          showFormStatusPicker, formStatusColumns, onFormStatusConfirm, showStatusSheet, statusActions, 
-          monthlyBills, totalExpense, totalPending, filteredWardrobe, currentMonthPending,
-          onSubmit, afterRead, addAccessory, removeAccessory, editItem, deleteItem, cancelEdit,
-          getStatusText, getTapeColor, openStatusSheet, onStatusSelect, onTabChange, changeTheme, exportData, triggerImport, importData, clearAllData
-        };
-      }
-    });
+        filteredWardrobe,
+        totalExpense,
+        totalPending,
+        currentMonthPending,
+        monthlyBills,
 
-    app.use(vant);
-    app.mount('#app');
-  </script>
+        setWardrobeViewMode,
+        getStatusText,
+        getTapeColor,
+        onTabChange,
+
+        afterRead,
+        onSubmit,
+        editItem,
+        deleteItem,
+        cancelEdit,
+        addAccessory,
+        removeAccessory,
+
+        openStatusSheet,
+        onStatusSelect,
+        onTypeConfirm,
+        openAccTypePicker,
+        onAccTypeConfirm,
+        onFormStatusConfirm,
+
+        resetWishForm,
+        afterWishRead,
+        onWishStatusConfirm,
+        onWishSubmit,
+        editWishItem,
+        deleteWishItem,
+        transferToWardrobe,
+
+        changeTheme,
+        exportData,
+        triggerImport,
+        importData,
+        clearAllData
+      };
+    }
+  });
+
+  app.use(vant);
+  app.mount('#app');
+</script>
 </body>
 </html>
